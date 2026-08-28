@@ -135,7 +135,8 @@ $ cc GridText
 %SYSTEM-F-ABORT, abort
 ```
 
-Check and raise:
+Check and raise. **`PGFLQUOTA=250000` is the value that worked on the test
+system** — it took `GridText.c` through with the optimizer enabled:
 
 ```dcl
 $ SHOW PROCESS/QUOTA                     ! look at PGFLQUOTA
