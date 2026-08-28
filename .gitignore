@@ -1,0 +1,22 @@
+# VMS build artifacts
+*.obj
+*.olb
+*.exe
+*.map
+*.lis
+*.OBJ
+*.OLB
+*.EXE
+*.MAP
+*.LIS
+Lynx.trace
+LYNX.TRACE
+BUILD.LOG
+build.log
+
+# generated chrtrans headers (makeuctb produces these from the .tbl files)
+src/chrtrans/*_uni.h
+src/chrtrans/*_kb.h
+
+# transfer archives
+*.zip
