@@ -21,6 +21,9 @@ src/chrtrans/*_kb.h
 # transfer archives
 *.zip
 
-# VMSINSTAL save sets (build artifact - see kit/README.md)
+# VMSINSTAL save sets are build artifacts -- except the released kit,
+# which is committed on purpose so people can install without a VAX
+# toolchain.  See kit/README.md.
 *.A
 *.a
+!kit/LYNX293.A

@@ -11,9 +11,42 @@ DEC C / Compaq C V6.4, TCP/IP Services "UCX"). Built to the recipe in
 
 ## Installing
 
-You need the save set `LYNX293.A`. It is a build artifact and is not committed
-here — see [Building the kit](#building-the-kit) for the one command that
-produces it, or fetch it from the project's GitHub Releases if one is published.
+The save set `LYNX293.A` is committed here, so you do not need a VAX build
+toolchain to install Lynx — just get the file onto the VAX. It is 2,285,568
+bytes (4464 blocks).
+
+### Getting the save set onto the VAX
+
+**Transfer it in binary/image mode.** A save set is fixed-length 2048-byte
+records; ASCII mode silently corrupts it and the install fails at restore with
+`INVBLKSIZE` or a CRC error.
+
+By FTP, from a machine that can reach the VAX:
+
+```
+ftp> binary
+ftp> put LYNX293.A
+```
+
+Then, on the VAX, **restore the record attributes**. A file arriving over FTP or
+out of a zip usually lands as a stream file, and BACKUP will not read it:
+
+```dcl
+$ SET FILE/ATTRIBUTES=(RFM:FIX,MRS:2048,LRL:2048,RAT:NONE) LYNX293.A
+```
+
+Check it took — `DIRECTORY/FULL LYNX293.A` should say:
+
+```
+Record format:      Fixed length 2048 byte records
+Record attributes:  None
+Size:               4464/4464
+```
+
+If the record format says anything else, fix it before installing; every other
+symptom you would chase from here is a consequence of this one.
+
+### Running the install
 
 Put `LYNX293.A` in a directory on the VAX, then:
 
@@ -90,6 +123,9 @@ is left beside it as `LYNX.CFG-NEW`.
 
 ## Building the kit
 
+You only need this if you have changed the source. To install, use the committed
+`LYNX293.A` above.
+
 On the VAX, after a successful `@BUILD` has produced `LYNX.EXE` at the top of the
 source tree:
 
@@ -124,6 +160,7 @@ dies with `%RMS-F-WLD`. Release notes ship as `RELEASE_NOTES.TXT` instead.
 | `LYNX$STARTUP.COM` | goes to `SYS$MANAGER:`; defines the command and logical |
 | `MAKE_KIT.COM` | builds `LYNX293.A` |
 | `RELEASE_NOTES.TXT` | documentation only — deliberately **not** in the save set |
+| `LYNX293.A` | the built save set; this is what you install |
 
 ### A cosmetic note on the version
 
