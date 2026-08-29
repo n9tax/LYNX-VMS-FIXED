@@ -12,8 +12,8 @@ DEC C / Compaq C V6.4, TCP/IP Services "UCX"). Built to the recipe in
 ## Installing
 
 The save set `LYNX293.A` is committed here, so you do not need a VAX build
-toolchain to install Lynx — just get the file onto the VAX. It is 2,324,480
-bytes (4540 blocks).
+toolchain to install Lynx — just get the file onto the VAX. It is 2,326,528
+bytes (4544 blocks).
 
 The save set was rebuilt on the VAX on 29 Aug 2026 and **includes the multi-user
 fix** — `Lynx_Dir` is defined `/SYSTEM`, not per-process. Verified on GOZER
@@ -45,10 +45,10 @@ Check it took — `DIRECTORY/FULL LYNX293.A` should say:
 ```
 Record format:      Fixed length 2048 byte records
 Record attributes:  None
-Size:               4540/4545
+Size:               4544/4545
 ```
 
-The first number is what matters — 4540 blocks used. The allocated figure after
+The first number is what matters — 4544 blocks used. The allocated figure after
 the slash depends on the disk's cluster size and may differ on your system.
 
 If the record format says anything else, fix it before installing; every other
@@ -277,9 +277,49 @@ command line  >  WWW_HOME  >  STARTFILE in lynx.cfg
 ```
 
 so bookmarks become the default page while `LYNX http://something/` still goes
-where it was told. The procedure defines `WWW_HOME` only once the file exists —
-aiming the startfile at a missing file makes Lynx quit with `Can't access
-startfile` — so a user with no bookmarks yet simply gets `STARTFILE`.
+where it was told.
+
+`WWW_HOME` cannot point at a file that does not exist — Lynx quits with
+`Can't access startfile` — so on a user's first login the procedure copies a
+small empty bookmark file into their `SYS$LOGIN` from `Lynx_Dir:LYNXBOOK.HTML`.
+That seeding is what makes the *first* bookmark show up straight away. Without
+it there is an off-by-one login: the procedure runs before the file exists, so
+the start page only switches over at the user's **next** login.
+
+### Why the skeleton is Stream_LF, and must stay that way
+
+This one is worth knowing before you hand-make a bookmark file on VMS.
+
+Lynx adds a bookmark by reopening the file `"a+"`, rewinding, and re-reading it
+to find where to insert. On a **variable-length record** file that read comes
+back empty, so Lynx concludes the file is new and writes a second complete copy
+of the header. You end up with a file containing the header twice and your
+bookmarks stranded after it.
+
+DCL `CREATE`, `OPEN/WRITE` and `COPY` from a text file all produce
+variable-record files. Lynx itself writes **Stream_LF**. So the skeleton is
+converted at kit-build time:
+
+```dcl
+$ CONVERT/FDL=BOOKSKEL.FDL BOOKSKEL.HTML LYNXBOOK.HTML
+```
+
+and every later step — BACKUP into the save set, `COPY` in `KITINSTAL.COM`,
+`COPY` into `SYS$LOGIN` at login — preserves the record format.
+
+Verified both ways on GOZER by adding bookmarks interactively: the
+variable-record skeleton duplicated the header, and the Stream_LF one took two
+successive bookmarks cleanly, leaving one header, one `<ol>`, and two `<li>`
+entries.
+
+If you ever create a bookmark file by hand, check it:
+
+```dcl
+$ DIRECTORY/FULL SYS$LOGIN:LYNX_BOOKMARKS.HTML
+```
+
+`Record format: Stream_LF` is what you want. Anything else and Lynx will
+duplicate the header the first time you add a bookmark.
 
 **Do not use `lynx -book` for this.** It looks like the obvious answer, and it
 does use the bookmark page, but it *also* overrides a URL given on the command
@@ -404,6 +444,7 @@ the kit never overwrites a `lynx.cfg` you have edited.
 | `LYNX.EXE` | `SYS$SYSTEM:` | the browser |
 | `LYNX.CFG` | `SYS$COMMON:[LYNX]` | global configuration; `Lynx_Dir` points here |
 | `LYNXSTART.HTML` | `SYS$COMMON:[LYNX]` | default start page; `STARTFILE` points here |
+| `LYNXBOOK.HTML` | `SYS$COMMON:[LYNX]` | empty bookmark file, copied to each user's `SYS$LOGIN` at first login |
 | `LYNX.HLP` | `SYS$HELP:` | VMS-format help text |
 | `LYNX$STARTUP.COM` | `SYS$MANAGER:` | defines the `LYNX` command per-process and `Lynx_Dir` system-wide |
 
@@ -488,6 +529,8 @@ dies with `%RMS-F-WLD`. Release notes ship as `RELEASE_NOTES.TXT` instead.
 | `LYNX$STARTUP.COM` | goes to `SYS$MANAGER:`; call it from **both** `SYSTARTUP_VMS.COM` and `SYLOGIN.COM` |
 | `MAKE_KIT.COM` | builds `LYNX293.A` |
 | `LYNXSTART.HTML` | the default start page, installed beside `lynx.cfg` |
+| `BOOKSKEL.HTML` | source of the per-user bookmark skeleton |
+| `BOOKSKEL.FDL` | FDL that converts it to Stream_LF; build-time only, not in the save set |
 | `LYNXWIRE.COM` | adds a line to `SYLOGIN.COM` / `SYSTARTUP_VMS.COM` safely; not in the save set |
 | `RELEASE_NOTES.TXT` | documentation only — deliberately **not** in the save set |
 | `LYNX293.A` | the built save set; this is what you install |

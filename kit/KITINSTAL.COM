@@ -40,6 +40,14 @@ $ ! Replaced on every install: it is ours, not a file anyone customises.
 $ COPY/PROTECTION=(S:RWED,O:RWED,G:RE,W:RE) -
       VMI$KWD:LYNXSTART.HTML     VMI$ROOT:[LYNX]LYNXSTART.HTML
 $ !
+$ ! The per-user bookmark skeleton.  LYNX$STARTUP.COM copies this into a user's
+$ ! SYS$LOGIN on their first login, so their own bookmarks can be their start
+$ ! page from the very beginning.  It is Stream_LF and must stay that way --
+$ ! COPY preserves the record format, which is why this is a copy and not a
+$ ! file generated on the fly.
+$ COPY/PROTECTION=(S:RWED,O:RWED,G:RE,W:RE) -
+      VMI$KWD:LYNXBOOK.HTML      VMI$ROOT:[LYNX]LYNXBOOK.HTML
+$ !
 $ ! VMS help text.
 $ COPY/PROTECTION=(S:RWED,O:RWED,G:RE,W:RE) -
       VMI$KWD:LYNX.HLP           VMI$ROOT:[SYSHLP]LYNX.HLP

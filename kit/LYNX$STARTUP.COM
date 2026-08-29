@@ -71,7 +71,24 @@ $ !
 $ ! Keep BM_FILE in step with DEFAULT_BOOKMARK_FILE in lynx.cfg.
 $ BM_FILE = "LYNX_BOOKMARKS.HTML"
 $ IF F$TRNLNM("WWW_HOME") .NES. "" THEN GOTO DONE      ! user set their own
+$ !
+$ ! Give a new user an empty bookmark file, so WWW_HOME can point at it from
+$ ! the very first login.  Without this the start page only switches to the
+$ ! user's bookmarks at their NEXT login after adding the first one, because
+$ ! this procedure runs before the file exists.
+$ !
+$ ! It MUST be copied from the shipped skeleton, not created here with CREATE
+$ ! or OPEN/WRITE.  Those produce a variable-length record file, and Lynx
+$ ! cannot append to one: adding a bookmark reopens the file "a+", rewinds and
+$ ! re-reads it, that read yields nothing on a variable-record file, so Lynx
+$ ! concludes the file is empty and writes a SECOND copy of the whole header.
+$ ! The shipped skeleton is Stream_LF, which is what Lynx itself writes, and
+$ ! COPY preserves the record format.  Verified both ways on GOZER.
+$ IF F$SEARCH("SYS$LOGIN:''BM_FILE'") .NES. "" THEN GOTO HAVE_BM
+$ IF F$SEARCH("LYNX_DIR:LYNXBOOK.HTML") .EQS. "" THEN GOTO DONE
+$ COPY LYNX_DIR:LYNXBOOK.HTML SYS$LOGIN:'BM_FILE'
 $ IF F$SEARCH("SYS$LOGIN:''BM_FILE'") .EQS. "" THEN GOTO DONE
+$ HAVE_BM:
 $ ! A logical name works fine inside a file: URL -- SYS$LOGIN: and even rooted
 $ ! ones like SYS$COMMON: were both tested.  What does NOT work is the "~/"
 $ ! form: Lynx expands it to an extra leading slash and cannot open the result.

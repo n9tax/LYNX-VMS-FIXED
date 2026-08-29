@@ -114,6 +114,22 @@ BOOKMARKS AND THE START PAGE
     on the command line, so "LYNX http://host/" would open bookmarks
     instead.
 
+    On a user's first login the startup procedure copies an empty bookmark
+    file into their SYS$LOGIN from Lynx_Dir:LYNXBOOK.HTML.  That is what
+    makes the FIRST bookmark appear on the start page straight away; the
+    procedure runs before the user has any bookmarks, so without the seed
+    the start page would only switch over at their next login.
+
+    THE BOOKMARK FILE MUST BE STREAM_LF.  Lynx appends a bookmark by
+    reopening the file "a+", rewinding and re-reading it.  On a
+    variable-length record file that read returns nothing, Lynx decides the
+    file is new, and writes a SECOND copy of the whole header.  DCL CREATE,
+    OPEN/WRITE and COPY from a text file all produce variable-record files;
+    Lynx itself writes Stream_LF.  The skeleton is therefore converted at
+    kit-build time with CONVERT/FDL, and every step after that preserves the
+    record format.  If you hand-make a bookmark file, check it with
+    DIRECTORY/FULL -- "Record format: Stream_LF" is what you need.
+
     Until a user has any bookmarks they get STARTFILE, which this kit sets
     to a local page installed as SYS$COMMON:[LYNX]LYNXSTART.HTML.  The
     upstream default is an https: URL and cannot work without SSL.

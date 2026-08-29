@@ -20,7 +20,7 @@ VMSINSTAL kit is in the kit/ directory.
          $ SET FILE/ATTRIBUTES=(RFM:FIX,MRS:2048,LRL:2048,RAT:NONE) LYNX293.A
 
      Check with DIRECTORY/FULL -- it must say "Fixed length 2048 byte records"
-     and 4540 blocks used (the allocated figure after the slash depends on
+     and 4544 blocks used (the allocated figure after the slash depends on
      the disk cluster size and may differ).
 
   3. Install it:
