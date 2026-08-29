@@ -341,6 +341,62 @@ On URL syntax, for reference — tested, all as an unprivileged user:
 | `file://localhost/SYS$COMMON:[LYNX]FILE.HTML` | yes — rooted logicals too |
 | `file://localhost/~/FILE.HTML` | **no** — expands to a doubled slash |
 
+### HTTPS through a gateway proxy
+
+This build has no SSL, so `https:` fails on its own:
+
+```
+Alert!: This client does not contain support for HTTPS URLs.
+```
+
+A proxy fixes that, but **only the right kind of proxy**, and this is the part
+that wastes an afternoon:
+
+- With `https_proxy` set, Lynx sends a plain-HTTP **absolute-URI** request to the
+  proxy — literally `GET https://host/path HTTP/1.0` over an unencrypted
+  connection — and expects the page back in clear.
+- It does **not** use `CONNECT`. The CONNECT tunnelling code in
+  `WWW/Library/Implementation/HTTP.c` sits inside `#ifdef USE_SSL`, so a build
+  without SSL never emits it. That is not a configuration choice; the code is
+  not compiled in.
+
+So you need a **TLS-terminating gateway**, not a conventional forwarding proxy.
+A stock Squid, which serves `https:` by tunnelling `CONNECT`, cannot work here
+however you configure it. Test a candidate proxy before trusting it:
+
+```
+printf 'GET https://example.com/ HTTP/1.0\r\nHost: example.com\r\n\r\n' \
+    | nc PROXYHOST PROXYPORT | head -3
+```
+
+`HTTP/1.1 200 OK` means it will work. `405`, `501` or a CONNECT-only reply means
+it will not.
+
+Set it globally in `lynx.cfg`, which covers every user and every mode including
+batch:
+
+```
+https_proxy:http://proxyhost:port/
+```
+
+Only `https:` is proxied; plain `http:` still goes out directly.
+
+A user can override it for their own session with a **process logical**. Lynx
+looks up the lowercase name, so on VMS it must be quoted:
+
+```dcl
+$ DEFINE "https_proxy" "http://otherproxy:8080/"
+$ DEFINE "no_proxy" "*"        ! bypass proxying entirely this session
+```
+
+Logicals take precedence over `lynx.cfg` — verified: with `no_proxy` set to `*`,
+an `https:` fetch fell back to the no-SSL error above, and removing the logical
+restored it.
+
+The proxy address is site-specific, so the shipped `lynx.cfg` leaves all the
+`*_proxy` lines commented out. Setting one is a local decision, and re-installing
+the kit never overwrites a `lynx.cfg` you have edited.
+
 ### What gets installed where
 
 | File | Destination | Why |

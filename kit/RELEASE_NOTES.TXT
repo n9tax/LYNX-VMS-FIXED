@@ -33,12 +33,36 @@ WHAT IS DIFFERENT FROM STOCK LYNX 2.9.3
 NOT INCLUDED
 ------------
 
-    No SSL/TLS.  https: URLs will not work.  Building with OpenSSL on
-    OpenVMS VAX is possible but the practical ceiling is OpenSSL 0.9.8,
-    which tops out at TLS 1.0 -- not enough for the modern web.  Use an
-    HTTP-to-HTTPS proxy instead:
+    No SSL/TLS.  On its own, https: gives
 
-        $ DEFINE "https_proxy" "http://yourproxy.example:3128/"
+        Alert!: This client does not contain support for HTTPS URLs.
+
+    Building with OpenSSL on OpenVMS VAX is possible but the practical
+    ceiling is OpenSSL 0.9.8, which tops out at TLS 1.0 -- not enough for
+    the modern web.  Use a TLS-terminating gateway proxy instead, set in
+    lynx.cfg so it covers every user:
+
+        https_proxy:http://yourgateway.example:3128/
+
+    or per session as a process logical (lowercase, so quoted on VMS):
+
+        $ DEFINE "https_proxy" "http://yourgateway.example:3128/"
+
+    IT MUST BE A GATEWAY, NOT A TUNNELLING PROXY.  Lynx sends the proxy a
+    plain-HTTP absolute-URI request --
+
+        GET https://host/path HTTP/1.0
+
+    -- and expects the page back in clear.  It never sends CONNECT: that
+    code in HTTP.c is inside #ifdef USE_SSL and is not compiled into this
+    build.  A stock Squid, which serves https: by tunnelling CONNECT,
+    cannot work here.  Check a candidate proxy first:
+
+        printf 'GET https://example.com/ HTTP/1.0\r\n\r\n' | nc HOST PORT
+
+    200 means it will work; 405 or a CONNECT-only answer means it will not.
+
+    Only https: is proxied; plain http: continues to go out directly.
 
     The online help files (lynx_help) are not in the kit.  Only the VMS
     help text LYNX.HLP is.
