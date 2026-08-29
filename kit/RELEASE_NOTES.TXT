@@ -55,6 +55,49 @@ REQUIREMENTS
     OpenVMS VAX V7.3, TCP/IP Services (UCX).
     Lynx_Dir must be defined -- @SYS$MANAGER:LYNX$STARTUP does it.
 
+MAKING LYNX AVAILABLE TO ALL USERS
+----------------------------------
+
+    Add  $ @SYS$MANAGER:LYNX$STARTUP  to BOTH of these:
+
+        SYS$MANAGER:SYSTARTUP_VMS.COM   defines Lynx_Dir /SYSTEM at boot,
+                                        so every process sees it.
+        SYS$MANAGER:SYLOGIN.COM         defines the LYNX command.  DCL
+                                        symbols are per-process and cannot
+                                        be made system-wide, so this must
+                                        run in every user's login.
+
+    Doing only one of the two is what leaves Lynx working for the account
+    that installed it and no one else.
+
+BOOKMARKS AND THE START PAGE
+----------------------------
+
+    Every user gets their own bookmark file, SYS$LOGIN:lynx_bookmarks.html,
+    with no setup.  Lynx prepends the home directory to
+    DEFAULT_BOOKMARK_FILE, so that setting must stay a BARE FILENAME; an
+    absolute path there gives the whole system one shared file.
+
+    Note that "BOOKMARK_FILE" is NOT a lynx.cfg keyword.  Only
+    DEFAULT_BOOKMARK_FILE exists; a BOOKMARK_FILE line is silently ignored.
+
+    A user's own bookmarks are their start page.  SYS$MANAGER:LYNX$STARTUP
+    defines WWW_HOME at login pointing at their bookmark file, and Lynx's
+    precedence is:  command line > WWW_HOME > STARTFILE.  So bookmarks are
+    the default page and "LYNX <url>" still works.
+
+    Do NOT use "LYNX -book" to get this.  -book also overrides a URL given
+    on the command line, so "LYNX http://host/" would open bookmarks
+    instead.
+
+    Until a user has any bookmarks they get STARTFILE, which this kit sets
+    to a local page installed as SYS$COMMON:[LYNX]LYNXSTART.HTML.  The
+    upstream default is an https: URL and cannot work without SSL.
+
+    Any page used as a start page must be World:RE.  A page without world
+    access gives "Can't access startfile" -- that message is far more often
+    a protection problem than a URL syntax problem.
+
 LICENCE
 -------
 

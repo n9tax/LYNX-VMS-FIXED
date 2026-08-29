@@ -1,0 +1,44 @@
+<html>
+<head><title>Lynx on OpenVMS</title></head>
+<body>
+<h1>Lynx 2.9.3 on OpenVMS</h1>
+
+<p>This is the default start page.  It is a local file, so it always loads.
+As soon as you add a bookmark of your own, <em>your bookmarks</em> become your
+start page instead, and you will not see this page again.</p>
+
+<h2>Bookmarks</h2>
+<p>Your bookmark file is your own: <tt>SYS$LOGIN:lynx_bookmarks.html</tt>.
+Nobody else can see it, and you do not have to set anything up.</p>
+<ul>
+<li><b>a</b> &mdash; add the current page to your bookmarks</li>
+<li><b>v</b> &mdash; view your bookmarks</li>
+<li><b>r</b> &mdash; remove a bookmark, while viewing them</li>
+</ul>
+<p>Lynx creates the file the first time you add a bookmark.</p>
+
+<h2>Getting around</h2>
+<ul>
+<li><b>g</b> &mdash; go to a URL you type</li>
+<li><b>Up</b> / <b>Down</b> &mdash; move between links, <b>Enter</b> to follow</li>
+<li><b>Left</b> &mdash; back, <b>Right</b> &mdash; follow link</li>
+<li><b>o</b> &mdash; options, <b>H</b> &mdash; help, <b>q</b> &mdash; quit</li>
+<li><b>/</b> &mdash; search within the page</li>
+</ul>
+<p>You can also start on any page directly:
+<tt>$ LYNX http://example.com/</tt></p>
+
+<h2>No HTTPS</h2>
+<p>This build has no SSL, so <tt>https:</tt> URLs will not work.  Plain
+<tt>http:</tt> does.  If you need HTTPS, run an HTTP-to-HTTPS proxy on another
+machine and point Lynx at it:</p>
+<pre>$ DEFINE "https_proxy" "http://yourproxy.example:3128/"</pre>
+
+<h2>For the system manager</h2>
+<p>The global configuration is <tt>Lynx_Dir:lynx.cfg</tt>.  To change this start
+page for everyone, edit <tt>STARTFILE</tt> there.  Any page you point it at must
+be readable by everyone (<tt>World:RE</tt>) or users will get
+<tt>Can't access startfile</tt>.</p>
+
+</body>
+</html>

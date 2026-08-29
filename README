@@ -20,7 +20,8 @@ VMSINSTAL kit is in the kit/ directory.
          $ SET FILE/ATTRIBUTES=(RFM:FIX,MRS:2048,LRL:2048,RAT:NONE) LYNX293.A
 
      Check with DIRECTORY/FULL -- it must say "Fixed length 2048 byte records"
-     and a size of 4464/4464 blocks.
+     and 4540 blocks used (the allocated figure after the slash depends on
+     the disk cluster size and may differ).
 
   3. Install it:
 
@@ -36,12 +37,50 @@ VMSINSTAL kit is in the kit/ directory.
          $ LYNX -version
          $ LYNX http://some.host/
 
-     Put that @SYS$MANAGER:LYNX$STARTUP line in SYS$MANAGER:SYLOGIN.COM so
-     every user gets it.  It defines the LYNX command AND the Lynx_Dir
-     logical -- without Lynx_Dir, Lynx exits immediately with
-     "Configuration file is not available".
+  5. Make it work for EVERY user, not just the account you installed from.
+     Add the same line to BOTH of these files -- they do different jobs and
+     neither one substitutes for the other:
+
+         SYS$MANAGER:SYSTARTUP_VMS.COM    $ @SYS$MANAGER:LYNX$STARTUP
+             runs at boot with privilege, and defines the Lynx_Dir logical
+             /SYSTEM so every process can see it.  Without Lynx_Dir, Lynx
+             exits immediately with "Configuration file is not available".
+
+         SYS$MANAGER:SYLOGIN.COM          $ @SYS$MANAGER:LYNX$STARTUP
+             runs at every login, and defines the LYNX command.  A DCL
+             symbol is per-process and CANNOT be made system-wide, so every
+             user's login has to define it.
+
+     Installed and verified on a real MicroVAX running OpenVMS VAX V7.3: an
+     account holding only NETMBX and TMPMBX renders pages correctly.  If you
+     installed from a kit built before 29-AUG-2026, see kit/README.md,
+     "Already installed from an older kit?" -- those kits defined Lynx_Dir
+     as a process logical and worked for one account only.
+
+     A VMS wrinkle worth knowing when you make those two edits: SYS$MANAGER
+     is a search list (SYS$SPECIFIC first, then SYS$COMMON).  An editor that
+     writes a NEW file rather than a new version will drop it in
+     SYS$SPECIFIC:[SYSMGR], where it silently shadows the real one in
+     SYS$COMMON:[SYSMGR].  Edit SYS$COMMON:[SYSMGR]... explicitly, and check
+     with  DIRECTORY SYS$SPECIFIC:[SYSMGR]SYLOGIN.COM  that you did not
+     leave a stray copy behind.
 
 The browser lands in SYS$SYSTEM:, its configuration in SYS$COMMON:[LYNX]LYNX.CFG.
+
+BOOKMARKS
+
+Every user gets their own bookmark file, SYS$LOGIN:lynx_bookmarks.html, with
+no setup at all, and their own bookmarks are their start page.  Press "a" to
+add a bookmark, "v" to view them.  "LYNX <url>" still works normally.
+
+Two traps, both documented in kit/README.md:
+
+  * "BOOKMARK_FILE" is NOT a lynx.cfg keyword -- only DEFAULT_BOOKMARK_FILE
+    is -- and it must stay a BARE FILENAME, because Lynx prepends the home
+    directory itself.  An absolute path gives everyone one shared file.
+
+  * "Can't access startfile" is usually a FILE PROTECTION problem, not a URL
+    syntax problem.  A start page everyone must read has to be World:RE.
 
 No SSL.  https: URLs will not work; use an HTTP-to-HTTPS proxy on another
 machine and define the "https_proxy" logical.
