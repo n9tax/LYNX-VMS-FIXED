@@ -1,0 +1,62 @@
+Lynx 2.9.3 for OpenVMS VAX  -  release notes
+============================================
+
+Built and verified on OpenVMS VAX V7.3, DEC C (Compaq C V6.4),
+TCP/IP Services (UCX).  Product name for VMSINSTAL: LYNX293
+
+WHAT IS DIFFERENT FROM STOCK LYNX 2.9.3
+---------------------------------------
+
+1.  HTTP works.
+
+    Stock 2.9.3 cannot fetch any http: URL on VMS when built with DEC C.
+    HTDoRead() in WWW/Library/Implementation/HTTCP.c line 2534 called
+    NETREAD(), which www_tcp.h defines as HTDoRead() -- so the function
+    called itself until the stack was destroyed.  The symptom was
+
+        %SYSTEM-F-ACCVIO, access violation ...
+        %SYSTEM-F-RADRMOD, reserved addressing fault ...
+
+    with no traceback, on every http: fetch, while local file: rendering
+    worked perfectly.  Lynx 2.8.8 called SOCKET_READ() at the equivalent
+    line; this build restores that.  Upstream regression.
+
+2.  Build procedure fixes for DEC C on VAX.
+
+    /ACCEPT=NOVAXC_KEYWORDS is now set in build.com, libmake.com and
+    build-chrtrans.com.  "readonly" is a VAX C storage-class keyword and
+    Lynx uses it as a struct member in src/HTForms.h.
+
+    build-chrtrans.com also passes /DEFINE=(UCX): the LY_SOCKADDR typedef
+    in www_tcp.h is unconditional and needs struct sockaddr_in complete.
+
+NOT INCLUDED
+------------
+
+    No SSL/TLS.  https: URLs will not work.  Building with OpenSSL on
+    OpenVMS VAX is possible but the practical ceiling is OpenSSL 0.9.8,
+    which tops out at TLS 1.0 -- not enough for the modern web.  Use an
+    HTTP-to-HTTPS proxy instead:
+
+        $ DEFINE "https_proxy" "http://yourproxy.example:3128/"
+
+    The online help files (lynx_help) are not in the kit.  Only the VMS
+    help text LYNX.HLP is.
+
+KNOWN COSMETIC ISSUE
+--------------------
+
+    VMSINSTAL announces the product as "LYNX V29.3" because it parses the
+    name as <FACILITY><VVU>.  Display only.
+
+REQUIREMENTS
+------------
+
+    OpenVMS VAX V7.3, TCP/IP Services (UCX).
+    Lynx_Dir must be defined -- @SYS$MANAGER:LYNX$STARTUP does it.
+
+LICENCE
+-------
+
+    Lynx is GPL v2 (version 2 only).  COPYING, COPYHEADER and
+    WWW/Library/vms/COPYING.LIB must accompany any redistribution.

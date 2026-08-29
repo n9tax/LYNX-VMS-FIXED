@@ -2531,7 +2531,13 @@ int HTDoRead(int fildes,
 	    break;
 	}
 #else /* UNIX */
-	result = NETREAD(fildes, (char *) buf, nbyte);
+	/*
+	 * NETREAD() is defined as HTDoRead() in www_tcp.h, so calling it
+	 * here recursed into this function until the stack was destroyed.
+	 * Lynx 2.8.8 had SOCKET_READ() here; restored.  Reached on VMS
+	 * when VAXC is not defined, i.e. every DEC C build.  -- 2026-08-28
+	 */
+	result = (int) SOCKET_READ(fildes, (char *) buf, nbyte);
 #endif /* !UNIX */
 #endif /* UCX && VAXC */
     }
