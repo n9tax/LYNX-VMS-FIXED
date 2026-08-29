@@ -1,5 +1,57 @@
                              Lynx README file
 
+------------------------------------------------------------------------------
+THIS FORK: OpenVMS VAX -- QUICK INSTALL
+------------------------------------------------------------------------------
+
+This tree is Lynx 2.9.3 with the fixes needed to build and run on OpenVMS VAX
+V7.3 with DEC C.  Most importantly it fixes a bug that makes stock 2.9.3 crash
+on every http: URL when built with DEC C (see kit/RELEASE_NOTES.TXT).
+
+If you just want to install it, you do NOT need to build anything.  A prebuilt
+VMSINSTAL kit is in the kit/ directory.
+
+  1. Copy kit/LYNX293.A to your VAX.  Transfer it in BINARY / IMAGE mode --
+     it is a BACKUP save set and ASCII mode will corrupt it silently.
+
+  2. On the VAX, repair the record attributes.  A file that has travelled by
+     FTP or inside a zip arrives as a stream file, and BACKUP will not read it:
+
+         $ SET FILE/ATTRIBUTES=(RFM:FIX,MRS:2048,LRL:2048,RAT:NONE) LYNX293.A
+
+     Check with DIRECTORY/FULL -- it must say "Fixed length 2048 byte records"
+     and a size of 4464/4464 blocks.
+
+  3. Install it:
+
+         $ @SYS$UPDATE:VMSINSTAL LYNX293 device:[directory-holding-the-saveset]
+
+     Answer YES to "processes are still active" (those are the TCP/IP
+     services; the install does not touch them) and YES to the backup
+     question.
+
+  4. Turn on the command, and use it:
+
+         $ @SYS$MANAGER:LYNX$STARTUP
+         $ LYNX -version
+         $ LYNX http://some.host/
+
+     Put that @SYS$MANAGER:LYNX$STARTUP line in SYS$MANAGER:SYLOGIN.COM so
+     every user gets it.  It defines the LYNX command AND the Lynx_Dir
+     logical -- without Lynx_Dir, Lynx exits immediately with
+     "Configuration file is not available".
+
+The browser lands in SYS$SYSTEM:, its configuration in SYS$COMMON:[LYNX]LYNX.CFG.
+
+No SSL.  https: URLs will not work; use an HTTP-to-HTTPS proxy on another
+machine and define the "https_proxy" logical.
+
+Full details, and how to rebuild the kit from source, are in kit/README.md.
+Build-from-source instructions are in INSTALLATION section III and in
+VAX_INSTALL_README.md.
+
+------------------------------------------------------------------------------
+
 Lynx Version 2.9.3 is the latest release (May 2026).
 See the CHANGES file for a complete record of all changes and bug fixes.
 New releases are announced on the lynx-dev mailing list (see below).
