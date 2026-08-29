@@ -27,3 +27,15 @@ src/chrtrans/*_kb.h
 *.A
 *.a
 !kit/LYNX293.A
+
+# Working notes, not for publication.  HANDOFF.md carries LAN addresses,
+# hostnames and account names from the development machines.
+HANDOFF.md
+
+# Session guideline files -- never published, per GIT_Rules_for_Claude.txt.
+CLAUDE.md
+GIT_Rules_for_Claude.txt
+
+# Wiki writeups are scratch artifacts for transfer into the personal wiki,
+# not project source.
+*.dokuwiki.txt
